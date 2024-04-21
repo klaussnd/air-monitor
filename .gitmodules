@@ -1,0 +1,3 @@
+[submodule "home-control"]
+	path = home-control
+	url = git@github.com:klaussnd/home-control
