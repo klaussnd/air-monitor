@@ -38,8 +38,12 @@ int main(int argc, char* argv[])
       TrayWidget widget;
       QObject::connect(&collector, &MqttDataCollector::isConnected, &widget,
                        &TrayWidget::isConnected);
-      QObject::connect(&collector, &MqttDataCollector::dataReceived, &widget,
-                       &TrayWidget::data);
+      QObject::connect(&collector, &MqttDataCollector::receivedCo2, &widget,
+                       &TrayWidget::dataCo2);
+      QObject::connect(&collector, &MqttDataCollector::receivedTemperature, &widget,
+                       &TrayWidget::dataTemperature);
+      QObject::connect(&collector, &MqttDataCollector::receivedHumidity, &widget,
+                       &TrayWidget::dataHumidity);
       widget.show();
 
       collector.connect();

@@ -6,6 +6,11 @@
 #include <QPainter>
 #include <QStringLiteral>
 
+namespace
+{
+constexpr const char* NOT_AVAIL = u8"n/a";
+}
+
 TrayWidget::TrayWidget(QObject* parent)
       : QSystemTrayIcon{parent}
       , m_colormap(600., 1200.)
@@ -22,13 +27,23 @@ void TrayWidget::isConnected()
    setToolTip(toolTip() + " - connected");
 }
 
-void TrayWidget::data(float temperature, int humidity, int co2)
+void TrayWidget::dataCo2(std::optional<unsigned int> co2)
 {
-   setToolTip(QStringLiteral(u"CO2 monitor\nTemperature %1°C\nHumidity %2%\nCO2 %3ppm")
-                 .arg(temperature)
-                 .arg(humidity)
-                 .arg(co2));
-   setIcon(co2);
+   m_co2 = co2;
+   setIcon();
+   updateToolTip();
+}
+
+void TrayWidget::dataTemperature(std::optional<float> temperature)
+{
+   m_temperature = temperature;
+   updateToolTip();
+}
+
+void TrayWidget::dataHumidity(std::optional<unsigned int> humidity)
+{
+   m_humidity = humidity;
+   updateToolTip();
 }
 
 void TrayWidget::setupUi(void)
@@ -63,15 +78,27 @@ void TrayWidget::iconActivated(QSystemTrayIcon::ActivationReason reason)
    }
 }
 
-void TrayWidget::setIcon(int co2)
+void TrayWidget::updateToolTip()
+{
+   setToolTip(
+      QStringLiteral(u"CO2 monitor\nTemperature %1°C\nHumidity %2%\nCO2 %3ppm")
+         .arg(m_temperature.has_value() ? QString::number(m_temperature.value())
+                                        : NOT_AVAIL)
+         .arg(m_humidity.has_value() ? QString::number(m_humidity.value()) : NOT_AVAIL)
+         .arg(m_co2.has_value() ? QString::number(m_co2.value()) : NOT_AVAIL));
+}
+
+void TrayWidget::setIcon()
 {
    QRectF iconRect{0, 0, 32, 32};
    QPixmap pixmap{iconRect.size().toSize()};
-   const auto color = m_colormap.color(co2);
+   const auto color =
+      m_co2.has_value() ? m_colormap.color(m_co2.value()) : QColorConstants::Gray;
    pixmap.fill(color);
    QPainter painter{&pixmap};
    painter.setPen(QColor{0, 0, 0});
-   painter.drawText(iconRect, QString::number(co2),
+   painter.drawText(iconRect,
+                    m_co2.has_value() ? QString::number(m_co2.value()) : NOT_AVAIL,
                     QTextOption{Qt::AlignVCenter | Qt::AlignHCenter});
    QSystemTrayIcon::setIcon(QIcon{pixmap});
 }

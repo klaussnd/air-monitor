@@ -15,7 +15,9 @@ public:
 
 signals:
    void isConnected();
-   void dataReceived(float temperature, int humidity, int co2);
+   void receivedCo2(std::optional<unsigned int> co2);
+   void receivedHumidity(std::optional<unsigned int> humidity);
+   void receivedTemperature(std::optional<float> temperature);
 
 private:
    void connected() override;
